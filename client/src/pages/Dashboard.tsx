@@ -3,7 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Plus, Eye, BarChart3, Target, Brain } from "lucide-react";
+import { TrendingUp, Plus, Eye, BarChart3, Target, Brain, Activity } from "lucide-react";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import PortfolioOverview from "@/components/PortfolioOverview";
@@ -12,6 +12,7 @@ import ValuationPanel from "@/components/ValuationPanel";
 import AllocationPanel from "@/components/AllocationPanel";
 import InsightsPanel from "@/components/InsightsPanel";
 import DataBackupRestore from "@/components/DataBackupRestore";
+import BenchmarkComparison from "@/components/BenchmarkComparison";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -85,6 +86,10 @@ export default function Dashboard() {
               <BarChart3 className="w-4 h-4" />
               Allocation
             </TabsTrigger>
+            <TabsTrigger value="benchmarks" className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              Benchmarks
+            </TabsTrigger>
             <TabsTrigger value="insights" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
               Insights
@@ -125,6 +130,12 @@ export default function Dashboard() {
           <TabsContent value="allocation" className="space-y-6">
             <h2 className="text-2xl font-bold">Portfolio Allocation</h2>
             <AllocationPanel />
+          </TabsContent>
+
+          {/* Benchmarks Tab */}
+          <TabsContent value="benchmarks" className="space-y-6">
+            <h2 className="text-2xl font-bold">Benchmark Comparison</h2>
+            <BenchmarkComparison />
           </TabsContent>
 
           {/* Insights Tab */}
