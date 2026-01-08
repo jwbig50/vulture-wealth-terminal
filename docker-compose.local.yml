@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: vulture-db-local
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass123
+      MYSQL_DATABASE: vulture_wealth
+      MYSQL_USER: vulture_user
+      MYSQL_PASSWORD: vulture_pass123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - vulture-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vulture-app-local
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://vulture_user:vulture_pass123@db:3306/vulture_wealth
+      JWT_SECRET: your-secret-key-change-this-in-production
+      VITE_APP_TITLE: Vulture Wealth Terminal
+      OWNER_NAME: Local User
+    ports:
+      - "3000:3000"
+    networks:
+      - vulture-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      timeout: 10s
+      retries: 3
+      interval: 30s
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  vulture-network:
+    driver: bridge
