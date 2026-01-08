@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { asc, desc, eq, gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, holdings, watchlist, financialData, valuations, priceHistory, allocations } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,67 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0];
+}
+
+// Portfolio queries
+export async function getUserHoldings(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(holdings).where(eq(holdings.userId, userId));
+}
+
+export async function getUserWatchlist(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(watchlist).where(eq(watchlist.userId, userId));
+}
+
+export async function getHoldingByUserAndTicker(userId: number, ticker: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(holdings)
+    .where(eq(holdings.userId, userId) && eq(holdings.ticker, ticker.toUpperCase()))
+    .limit(1);
+  return result[0];
+}
+
+export async function getFinancialData(ticker: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(financialData)
+    .where(eq(financialData.ticker, ticker.toUpperCase()))
+    .orderBy(desc(financialData.updatedAt))
+    .limit(1);
+  return result[0];
+}
+
+export async function getValuation(ticker: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(valuations)
+    .where(eq(valuations.ticker, ticker.toUpperCase()))
+    .orderBy(desc(valuations.calculatedAt))
+    .limit(1);
+  return result[0];
+}
+
+export async function getPriceHistory(ticker: string, days: number = 365) {
+  const db = await getDb();
+  if (!db) return [];
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  return db.select().from(priceHistory)
+    .where(eq(priceHistory.ticker, ticker.toUpperCase()) && gte(priceHistory.date, startDate))
+    .orderBy(asc(priceHistory.date));
+}
+
+export async function getUserAllocations(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(allocations).where(eq(allocations.userId, userId));
+}
