@@ -1,5 +1,3 @@
-import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { portfolioRouter } from "./portfolio.router";
@@ -7,20 +5,31 @@ import { valuationRouter } from "./valuation.router";
 import { insightsRouter } from "./insights.router";
 import { benchmarkRouter } from "./benchmark.router";
 
+// Local-only user (no authentication needed)
+const LOCAL_USER = {
+  id: 1,
+  openId: "local-user",
+  name: "Local User",
+  email: "local@localhost",
+  loginMethod: "local",
+  role: "admin" as const,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastSignedIn: new Date(),
+};
+
 export const appRouter = router({
-    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
+  
+  // Simple auth endpoint - always returns local user
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return {
-        success: true,
-      } as const;
-    }),
+    me: publicProcedure.query(() => LOCAL_USER),
+    logout: publicProcedure.mutation(() => ({
+      success: true,
+    })),
   }),
 
+  // Feature routers
   portfolio: portfolioRouter,
   valuation: valuationRouter,
   insights: insightsRouter,

@@ -34,10 +34,6 @@ RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy client dist if it exists, otherwise create empty directory
-RUN mkdir -p /app/client/dist || true
-COPY --from=builder /app/client/dist ./client/dist || true
-
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
